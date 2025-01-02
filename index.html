@@ -145,6 +145,16 @@
         </div>
     </div>
 </div>
+    
+<script>
+    document.querySelectorAll('.item-card').forEach(card => {
+        card.addEventListener('click', () => {
+            const itemId = card.dataset.id;
+            const quantity = document.getElementById('quantity').value;
+            window.location.href = /?item=${itemId}&quantity=${quantity};
+        });
+    });
+</script>
 
 <script>
     const categoryFilter = document.getElementById('category-filter');
@@ -162,22 +172,24 @@
         });
     }
 
-    categoryFilter.addEventListener('change', filterItems);
-    rarityFilter.addEventListener('change', filterItems);
-    window.onload = filterItems;
-</script>
-
-<script>
-    document.querySelectorAll('.item-card').forEach(card => {
-        card.addEventListener('click', () => {
-            const itemId = card.dataset.id;
-            const quantity = document.getElementById('quantity').value;
-            window.location.href = /?item=${itemId}&quantity=${quantity};
+    // Reapply event listeners after content update
+    function reapplyEventListeners() {
+        document.querySelectorAll('.item-card').forEach(card => {
+            card.addEventListener('click', () => {
+                const itemId = card.dataset.id;
+                const quantity = document.getElementById('quantity').value;
+                window.location.href = `/?item=${itemId}&quantity=${quantity}`;
+            });
         });
-    });
-</script>
 
-<script>
+        // Reapply filter dropdown event listeners
+        categoryFilter.addEventListener('change', filterItems);
+        rarityFilter.addEventListener('change', filterItems);
+        
+        // Apply initial filter state after reload
+        filterItems();
+    }
+
     // Function to fetch and update HTML content from GitHub
     async function updatePageContent() {
         try {
@@ -200,25 +212,14 @@
         }
     }
 
-    // Reapply event listeners after content update
-    function reapplyEventListeners() {
-        document.querySelectorAll('.item-card').forEach(card => {
-            card.addEventListener('click', () => {
-                const itemId = card.dataset.id;
-                const quantity = document.getElementById('quantity').value;
-                window.location.href = `/?item=${itemId}&quantity=${quantity}`;
-            });
-        });
-        
-        // Reapply filter functionality
-        filterItems();
-    }
-
     // Refresh content every 30 seconds
     setInterval(updatePageContent, 30000);
 
     // Initial application of filters on load
-    window.onload = filterItems;
+    window.onload = () => {
+        filterItems();
+        reapplyEventListeners();
+    };
 </script>
 
 </body>
