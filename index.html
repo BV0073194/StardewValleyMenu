@@ -172,7 +172,7 @@
         card.addEventListener('click', () => {
             const itemId = card.dataset.id;
             const quantity = document.getElementById('quantity').value;
-            window.location.href = '/?item=${itemId}&quantity=${quantity}';
+            window.location.href = `/?item=${itemId}&quantity=${quantity}`;
         });
     });
 </script>
