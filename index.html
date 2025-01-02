@@ -13,8 +13,9 @@
             padding: 0;
         }
         .container {
-            width: 85%;
-            margin: auto;
+            width: 90%;
+            max-width: 1200px;
+            margin: 20px auto;
             background-color: #f9e3b4;
             border: 5px solid #7c5c42;
             box-shadow: 0 8px 0 #6b4a34;
@@ -27,28 +28,31 @@
             text-shadow: 2px 2px #f4e6d7;
         }
         .item-list {
-            display: flex;
-            flex-wrap: wrap;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 15px;
             justify-content: center;
         }
         .item-card {
             border: 3px solid #7c5c42;
             padding: 15px;
-            margin: 10px;
-            width: 130px;
-            height: 160px;
+            width: 100%;
+            max-width: 150px;
+            height: auto;
             text-align: center;
             background-color: #f0d89d;
             cursor: pointer;
             box-shadow: 0 4px 0 #6b4a34;
             border-radius: 5px;
+            transition: background-color 0.2s ease, transform 0.1s ease;
         }
         .item-card:hover {
             background-color: #ebcb88;
+            transform: scale(1.05);
         }
         .item-card img {
-            width: 64px;
-            height: 64px;
+            width: 80px;
+            height: 80px;
             margin-bottom: 10px;
         }
         .spawn-form {
@@ -56,9 +60,12 @@
         }
         .spawn-form input {
             padding: 10px;
+            width: 90%;
+            max-width: 400px;
             border: 3px solid #7c5c42;
             background-color: #f5e1b7;
             border-radius: 5px;
+            font-size: 1rem;
         }
         .filters select {
             padding: 10px;
@@ -66,19 +73,37 @@
             border: 3px solid #7c5c42;
             background-color: #f5e1b7;
             border-radius: 5px;
+            width: 45%;
         }
         button {
             background-color: #f9a825;
             color: white;
-            padding: 12px 20px;
+            padding: 15px 25px;
             border: none;
             border-radius: 5px;
             font-size: 1rem;
             cursor: pointer;
             box-shadow: 0 4px 0 #d18a1e;
+            transition: background-color 0.2s ease;
         }
         button:hover {
             background-color: #f78f18;
+        }
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 1.8rem;
+            }
+            .item-card img {
+                width: 64px;
+                height: 64px;
+            }
+            .item-card {
+                max-width: 120px;
+                padding: 10px;
+            }
+            .spawn-form input, .filters select {
+                width: 95%;
+            }
         }
     </style>
 </head>
@@ -140,27 +165,9 @@
         card.addEventListener('click', () => {
             const itemId = card.dataset.id;
             const quantity = document.getElementById('quantity').value;
-            window.location.href = `http://localhost:8080/?item=${itemId}&quantity=${quantity}`;
+            window.location.href = `/?item=${itemId}&quantity=${quantity}`;
         });
     });
-
-    const categoryFilter = document.getElementById('category-filter');
-    const rarityFilter = document.getElementById('rarity-filter');
-
-    function filterItems() {
-        const selectedCategory = categoryFilter.value;
-        const selectedRarity = rarityFilter.value;
-
-        document.querySelectorAll('.item-card').forEach(card => {
-            const matchesCategory = selectedCategory === 'all' || card.dataset.category === selectedCategory;
-            const matchesRarity = selectedRarity === 'all' || card.dataset.rarity === selectedRarity;
-
-            card.style.display = (matchesCategory && matchesRarity) ? 'block' : 'none';
-        });
-    }
-
-    categoryFilter.addEventListener('change', filterItems);
-    rarityFilter.addEventListener('change', filterItems);
 </script>
 
 </body>
