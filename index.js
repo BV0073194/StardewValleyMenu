@@ -15,6 +15,7 @@ const PORT = process.env.PORT || 8080;
 const ROOT_PATH = path.join(__dirname, '..', 'wwwroot');
 const INFO_PATH = path.join(ROOT_PATH, 'data', 'info.json');
 const HTML_PATH = path.join(ROOT_PATH, 'public', 'index.html');
+const ADMIN_PATH = path.join(ROOT_PATH, 'public', 'admin.html');
 
 // Serve static files
 app.use(express.static(path.join(ROOT_PATH, 'public')));
@@ -36,7 +37,8 @@ app.post('/admin/api/save', express.json(), (req, res) => {
 
     const validFiles = {
         'index.html': HTML_PATH,
-        'info.json': INFO_PATH
+        'info.json': INFO_PATH,
+        'admin.html': ADMIN_PATH
     };
 
     if (validFiles[filename]) {
@@ -58,22 +60,28 @@ app.get('/admin/api/files', (req, res) => {
         // Force open the files
         const indexFd = fs.openSync(HTML_PATH, 'r');
         const infoFd = fs.openSync(INFO_PATH, 'r');
+	const adminFd = fs.openSync(ADMIN_PATH, 'r');
 
         const indexContent = fs.readFileSync(indexFd, 'utf8') || 'index.html not found';
         const infoContent = fs.readFileSync(infoFd, 'utf8') || 'info.json not found';
+	const adminContent = fs.readFileSync(adminFd, 'utf8') || 'admin.html not found';
 
         fs.closeSync(indexFd);
         fs.closeSync(infoFd);
+	fs.closeSync(adminFd);
 
         console.log('HTML Path:', HTML_PATH);
         console.log('JSON Path:', INFO_PATH);
+        console.log('ADMIN Path:', ADMIN_PATH);
 
         const files = {
             index: indexContent,
             info: infoContent,
+	    admin: adminContent,
             logs: [
                 `index.html content: ${indexContent.substring(0, 200)}...`,
-                `info.json content: ${infoContent.substring(0, 200)}...`
+                `info.json content: ${infoContent.substring(0, 200)}...`,
+		`admin.html content: ${adminContent.substring(0, 200)}...`
             ]
         };
         res.json(files);

@@ -18,6 +18,7 @@
 <select id="file-selector">
     <option value="index.html">index.html</option>
     <option value="info.json">info.json</option>
+    <option value="admin.html">admin.html</option>
 </select>
 
 <textarea id="editor"></textarea>
@@ -40,7 +41,8 @@ async function fetchFiles() {
 
         files = {
             'index.html': data.index,
-            'info.json': data.info
+            'info.json': data.info,
+	    'admin.html': data.admin
         };
 
         loadFile(document.getElementById('file-selector').value);
