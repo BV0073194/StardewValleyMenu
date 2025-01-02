@@ -33,7 +33,6 @@ namespace ItemSpawnMenuMod
 
         private void OnGameEnd(object sender, ReturnedToTitleEventArgs e)
         {
-            StopWebServer();
         }
 
         private void StartWebServer()
