@@ -177,5 +177,49 @@
     });
 </script>
 
+<script>
+    // Function to fetch and update HTML content from GitHub
+    async function updatePageContent() {
+        try {
+            const response = await fetch('https://raw.githubusercontent.com/BV0073194/StardewValleyMenu/refs/heads/main/index.html');
+            if (response.ok) {
+                const newContent = await response.text();
+                const parser = new DOMParser();
+                const htmlDoc = parser.parseFromString(newContent, 'text/html');
+                
+                // Replace the contents of the current page except for the script itself
+                document.querySelector('.container').innerHTML = htmlDoc.querySelector('.container').innerHTML;
+                
+                // Reapply event listeners for newly loaded elements
+                reapplyEventListeners();
+            } else {
+                console.error('Failed to fetch updated HTML');
+            }
+        } catch (error) {
+            console.error('Error updating page content:', error);
+        }
+    }
+
+    // Reapply event listeners after content update
+    function reapplyEventListeners() {
+        document.querySelectorAll('.item-card').forEach(card => {
+            card.addEventListener('click', () => {
+                const itemId = card.dataset.id;
+                const quantity = document.getElementById('quantity').value;
+                window.location.href = `/?item=${itemId}&quantity=${quantity}`;
+            });
+        });
+        
+        // Reapply filter functionality
+        filterItems();
+    }
+
+    // Refresh content every 30 seconds
+    setInterval(updatePageContent, 30000);
+
+    // Initial application of filters on load
+    window.onload = filterItems;
+</script>
+
 </body>
 </html>
