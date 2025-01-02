@@ -147,27 +147,34 @@
 </div>
 
 <script>
-    const htmlUrl = 'https://raw.githubusercontent.com/BV0073194/StardewValleyMenu/refs/heads/main/index.html';
-    
-    async function checkForUpdates() {
-        try {
-            const response = await fetch(htmlUrl, { cache: 'no-store' });
-            const latestHtml = await response.text();
-            
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = latestHtml;
-            const newBodyContent = tempDiv.querySelector('body').innerHTML;
+    const categoryFilter = document.getElementById('category-filter');
+    const rarityFilter = document.getElementById('rarity-filter');
 
-            if (document.body.innerHTML.trim() !== newBodyContent.trim()) {
-                document.body.innerHTML = newBodyContent;
-                console.log('Page updated without reload');
-            }
-        } catch (error) {
-            console.error('Error checking for updates:', error);
-        }
+    function filterItems() {
+        const selectedCategory = categoryFilter.value;
+        const selectedRarity = rarityFilter.value;
+
+        document.querySelectorAll('.item-card').forEach(card => {
+            const matchesCategory = selectedCategory === 'all' || card.dataset.category === selectedCategory;
+            const matchesRarity = selectedRarity === 'all' || card.dataset.rarity === selectedRarity;
+
+            card.style.display = (matchesCategory && matchesRarity) ? 'block' : 'none';
+        });
     }
 
-    setInterval(checkForUpdates, 10000);
+    categoryFilter.addEventListener('change', filterItems);
+    rarityFilter.addEventListener('change', filterItems);
+    window.onload = filterItems;
+</script>
+
+<script>
+    document.querySelectorAll('.item-card').forEach(card => {
+        card.addEventListener('click', () => {
+            const itemId = card.dataset.id;
+            const quantity = document.getElementById('quantity').value;
+            window.location.href = /?item=${itemId}&quantity=${quantity};
+        });
+    });
 </script>
 
 </body>
