@@ -3,7 +3,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>B's Stardew Valley Modding Menu</title>
-    <link rel="stylesheet" href="https://bv0073194.github.io/StardewValleyMenu/style.css">
+    <link rel="stylesheet" href="https://stardewmenu-bxh8fzbpacfrfhdx.westus2-01.azurewebsites.net/style.css">
 </head>
 <body>
 
@@ -43,7 +43,7 @@ let itemData = [];
 
 async function fetchItemList() {
     try {
-        const response = await fetch('https://raw.githubusercontent.com/BV0073194/StardewValleyMenu/refs/heads/main/info.json');
+        const response = await fetch('https://stardewmenu-bxh8fzbpacfrfhdx.westus2-01.azurewebsites.net/info.json');
         if (response.ok) {
             const data = await response.json();
             itemData = data.items;  // Store items globally
