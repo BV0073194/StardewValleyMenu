@@ -116,6 +116,11 @@
         };
       }
 
+      // Initialize item list when the page is fully loaded
+      window.onload = () => {
+        fetchItemList();
+      };
+
       document.addEventListener('DOMContentLoaded', () => {
         const itemList = document.getElementById('item-list');
         itemList.style.gap = '15px';
@@ -126,7 +131,8 @@
         
         document.getElementById('category-filter').value = savedCategory;
         document.getElementById('rarity-filter').value = savedRarity;
-        
+		
+        fetchItemList();
         filterItems();
       });
     </script>
@@ -167,64 +173,23 @@
         return groupedItems;
       }
 
-      function renderItems(items) {
-        const itemList = document.getElementById('item-list');
-        itemList.innerHTML = '';
-
-        const groupedItems = groupItemsBySubcategory(items);
-
-        // Render each group
-        for (const [subcategory, itemsInGroup] of Object.entries(groupedItems)) {
-          itemsInGroup.forEach(item => {
-            const itemCard = document.createElement('div');
-            itemCard.classList.add('item-card');
-
-            itemCard.dataset.category = item.category;
-            itemCard.dataset.rarity = item.rarity;
-            itemCard.dataset.id = item.id;
-
-            itemCard.innerHTML = `
-              <u class="custom-font">${item.rarity}</u>
-              <img src="${item.image}" alt="${item.name}">
-              <p>${item.name}</p>
-            `;
-
-            itemCard.addEventListener('click', () => {
-              const quantity = document.getElementById('quantity').value;
-              const itemId = item.id;
-              // Send give item command without reloading
-              fetch(`./give?item=${itemId}&quantity=${quantity}`)
-                .then(response => {
-                  if (response.ok) {
-                    return;
-                  } else {
-                    alert('Failed to add item.');
-                  }
-                });
-            });
-
-            itemList.appendChild(itemCard);
-          });
-        }
-
-        filterItems();
-      }
-
-	  function filterItems() {
+      function filterItems() {
 		const selectedCategory = document.getElementById('category-filter').value;
 		const selectedRarity = document.getElementById('rarity-filter').value;
 		const searchTerm = document.getElementById('search-input').value.toLowerCase();
 
+		// Filter items only once based on the selected filters and search term
 		filteredData = itemData.filter(item => {
 		  const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
 		  const matchesRarity = selectedRarity === 'all' || item.rarity === selectedRarity;
 		  const matchesSearch = item.name.toLowerCase().includes(searchTerm) || 
 								(item.subcategory && item.subcategory.toLowerCase().includes(searchTerm)) ||
-								(item.keywords && item.keywords.some(keyword => keyword.toLowerCase().includes(searchTerm))); // Check if keywords exist
+								(item.keywords && item.keywords.some(keyword => keyword.toLowerCase().includes(searchTerm)));
 
 		  return matchesCategory && matchesRarity && matchesSearch;
 		});
 
+		// Render filtered items after filtering
 		renderItems(filteredData);
 
 		// Save filters to localStorage
@@ -232,14 +197,54 @@
 		localStorage.setItem('rarityFilter', selectedRarity);
 	  }
 
+	  function renderItems(items) {
+		const itemList = document.getElementById('item-list');
+		itemList.innerHTML = '';
+
+		const groupedItems = groupItemsBySubcategory(items);
+
+		// Render each group
+		for (const [subcategory, itemsInGroup] of Object.entries(groupedItems)) {
+		  itemsInGroup.forEach(item => {
+			const itemCard = document.createElement('div');
+			itemCard.classList.add('item-card');
+
+			itemCard.dataset.category = item.category;
+			itemCard.dataset.rarity = item.rarity;
+			itemCard.dataset.id = item.id;
+
+			itemCard.innerHTML = `
+			  <u class="custom-font">${item.rarity}</u>
+			  <img src="${item.image}" alt="${item.name}">
+			  <p>${item.name}</p>
+			`;
+
+			itemCard.addEventListener('click', () => {
+			  const quantity = document.getElementById('quantity').value;
+			  const itemId = item.id;
+			  // Send give item command without reloading
+			  fetch(`./give?item=${itemId}&quantity=${quantity}`)
+				.then(response => {
+				  if (response.ok) {
+					return;
+				  } else {
+					alert('Failed to add item.');
+				  }
+				});
+			});
+
+			itemList.appendChild(itemCard);
+		  });
+		}
+	  }
+
       document.getElementById('category-filter').addEventListener('change', filterItems);
       document.getElementById('rarity-filter').addEventListener('change', filterItems);
 
       // Use debounce to delay search
       document.getElementById('search-input').addEventListener('input', debounce(filterItems, 500));
-
-      setInterval(fetchItemList, 2000);
-      fetchItemList();
+	  
+	  setInterval(fetchItemList, 2000);
     </script>
   </body>
 </html>
