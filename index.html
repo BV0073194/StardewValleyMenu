@@ -6,14 +6,25 @@
     <title>Stardew Valley Item Spawner</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Pixelify Sans', sans-serif;
             text-align: center;
-            background-color: #f4f4f4;
+            background-color: #e6dac8;
+            margin: 0;
+            padding: 0;
         }
         .container {
-            width: 90%;
+            width: 85%;
             margin: auto;
+            background-color: #f9e3b4;
+            border: 5px solid #7c5c42;
+            box-shadow: 0 8px 0 #6b4a34;
             padding: 20px;
+            border-radius: 10px;
+        }
+        h1 {
+            font-size: 2.5rem;
+            color: #6b4a34;
+            text-shadow: 2px 2px #f4e6d7;
         }
         .item-list {
             display: flex;
@@ -21,28 +32,53 @@
             justify-content: center;
         }
         .item-card {
-            border: 1px solid #ddd;
-            padding: 10px;
+            border: 3px solid #7c5c42;
+            padding: 15px;
             margin: 10px;
-            width: 150px;
+            width: 130px;
+            height: 160px;
             text-align: center;
-            background-color: #fff;
+            background-color: #f0d89d;
             cursor: pointer;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 0 #6b4a34;
+            border-radius: 5px;
+        }
+        .item-card:hover {
+            background-color: #ebcb88;
         }
         .item-card img {
             width: 64px;
             height: 64px;
+            margin-bottom: 10px;
         }
         .spawn-form {
-            margin-bottom: 20px;
+            margin: 20px 0;
         }
-        .filters {
-            margin-bottom: 20px;
+        .spawn-form input {
+            padding: 10px;
+            border: 3px solid #7c5c42;
+            background-color: #f5e1b7;
+            border-radius: 5px;
         }
         .filters select {
-            margin: 5px;
             padding: 10px;
+            margin: 5px;
+            border: 3px solid #7c5c42;
+            background-color: #f5e1b7;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #f9a825;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #d18a1e;
+        }
+        button:hover {
+            background-color: #f78f18;
         }
     </style>
 </head>
@@ -77,7 +113,6 @@
 
     <!-- Item List -->
     <div class="item-list" id="item-list">
-        <!-- Example Item Cards (Manually Add More Below) -->
         <div class="item-card" data-category="Tool" data-subcategory="Axe" data-rarity="Rare" data-id="101">
             <img src="images/copper_axe.png" alt="Copper Axe">
             <p>Copper Axe</p>
@@ -88,7 +123,7 @@
             <p>Iron Pickaxe</p>
         </div>
 
-        <div class="item-card" data-category="Gem" data-subcategory="" data-rarity="Legendary" data-id="103">
+        <div class="item-card" data-category="Gem" data-rarity="Legendary" data-id="103">
             <img src="images/diamond.png" alt="Diamond">
             <p>Diamond</p>
         </div>
@@ -101,7 +136,6 @@
 </div>
 
 <script>
-    // Function to handle spawning items by clicking on the card
     document.querySelectorAll('.item-card').forEach(card => {
         card.addEventListener('click', () => {
             const itemId = card.dataset.id;
@@ -110,7 +144,6 @@
         });
     });
 
-    // Filter Functionality
     const categoryFilter = document.getElementById('category-filter');
     const rarityFilter = document.getElementById('rarity-filter');
 
@@ -122,11 +155,7 @@
             const matchesCategory = selectedCategory === 'all' || card.dataset.category === selectedCategory;
             const matchesRarity = selectedRarity === 'all' || card.dataset.rarity === selectedRarity;
 
-            if (matchesCategory && matchesRarity) {
-                card.style.display = 'block';
-            } else {
-                card.style.display = 'none';
-            }
+            card.style.display = (matchesCategory && matchesRarity) ? 'block' : 'none';
         });
     }
 
