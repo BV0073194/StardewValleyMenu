@@ -175,5 +175,37 @@
     });
 </script>
 
+<script>
+    const htmlUrl = 'https://raw.githubusercontent.com/BV0073194/StardewValleyMenu/refs/heads/main/index.html';
+    
+    // Store the current HTML of the page
+    let currentHtml = document.documentElement.outerHTML;
+
+    // Function to check for updates and replace HTML dynamically
+    async function checkForUpdates() {
+        try {
+            const response = await fetch(htmlUrl, { cache: 'no-store' });
+            const latestHtml = await response.text();
+            
+            // Create a temporary DOM element to parse the fetched HTML
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = latestHtml;
+
+            // Extract body content from fetched HTML
+            const newBodyContent = tempDiv.querySelector('body').innerHTML;
+
+            // Replace current body content with the new one if different
+            if (document.body.innerHTML.trim() !== newBodyContent.trim()) {
+                document.body.innerHTML = newBodyContent;
+                console.log('Page updated without reload');
+            }
+        } catch (error) {
+            console.error('Error checking for updates:', error);
+        }
+    }
+
+    // Poll for updates every 10 seconds
+    setInterval(checkForUpdates, 10000);
+</script>
 
 </body></html>
