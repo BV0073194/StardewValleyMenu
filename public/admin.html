@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        textarea { width: 100%; height: 400px; }
+        button { padding: 10px 20px; margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+<h1>Admin Panel - File Editor</h1>
+
+<label for="file-selector">Select File:</label>
+<select id="file-selector">
+    <option value="index.html">index.html</option>
+    <option value="info.json">info.json</option>
+</select>
+
+<textarea id="editor"></textarea>
+<button onclick="saveFile()">Save</button>
+
+<script>
+let files = {};
+
+async function fetchFiles() {
+    const response = await fetch('/admin/api/files');
+    files = await response.json();
+    loadFile('index.html');
+}
+
+function loadFile(filename) {
+    document.getElementById('editor').value = files[filename];
+}
+
+async function saveFile() {
+    const filename = document.getElementById('file-selector').value;
+    const content = document.getElementById('editor').value;
+
+    const response = await fetch('/admin/api/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filename, content })
+    });
+
+    const message = await response.text();
+    alert(message);
+}
+
+document.getElementById('file-selector').addEventListener('change', (e) => {
+    loadFile(e.target.value);
+});
+
+fetchFiles();
+</script>
+
+</body>
+</html>
