@@ -157,19 +157,13 @@
             const newItemList = doc.getElementById('item-list').innerHTML;
 
             document.getElementById('item-list').innerHTML = newItemList;
+            filterItems();
+            addItemClickListeners();
         } catch (error) {
             console.error('Failed to fetch updated items:', error);
         }
     }
 
-    setInterval(fetchAndUpdateItems, 5000); // Update every 5 seconds
-
-    categoryFilter.addEventListener('change', fetchAndUpdateItems);
-    rarityFilter.addEventListener('change', fetchAndUpdateItems);
-    window.onload = fetchAndUpdateItems;
-</script>
-
-<script>
     function filterItems() {
         const selectedCategory = categoryFilter.value;
         const selectedRarity = rarityFilter.value;
@@ -182,19 +176,20 @@
         });
     }
 
+    function addItemClickListeners() {
+        document.querySelectorAll('.item-card').forEach(card => {
+            card.addEventListener('click', () => {
+                const itemId = card.dataset.id;
+                const quantity = document.getElementById('quantity').value;
+                window.location.href = `/?item=${itemId}&quantity=${quantity}`;
+            });
+        });
+    }
+
+    setInterval(fetchAndUpdateItems, 5000); // Update every 5 seconds
     categoryFilter.addEventListener('change', filterItems);
     rarityFilter.addEventListener('change', filterItems);
-    window.onload = filterItems;
-</script>
-
-<script>
-    document.querySelectorAll('.item-card').forEach(card => {
-        card.addEventListener('click', () => {
-            const itemId = card.dataset.id;
-            const quantity = document.getElementById('quantity').value;
-            window.location.href = /?item=${itemId}&quantity=${quantity};
-        });
-    });
+    window.onload = fetchAndUpdateItems;
 </script>
 
 </body>
