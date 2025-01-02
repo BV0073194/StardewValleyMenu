@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stardew Valley Item Spawner</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+            background-color: #f4f4f4;
+        }
+        .container {
+            width: 80%;
+            margin: auto;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+        }
+        input, select, button {
+            padding: 10px;
+            width: 80%;
+            margin-bottom: 10px;
+        }
+        .item-list {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .item-card {
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin: 10px;
+            width: 200px;
+            text-align: center;
+            background-color: #fafafa;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Item Spawn Menu - Player: {{playerName}}</h1>
+        <form method="get">
+            <div class="form-group">
+                <label for="item">Item ID or Qualified ID:</label>
+                <input type="text" id="item" name="item" required>
+            </div>
+            <div class="form-group">
+                <label for="quantity">Quantity:</label>
+                <input type="number" id="quantity" name="quantity" value="1" min="1" required>
+            </div>
+            <button type="submit">Spawn Item</button>
+        </form>
+
+        <div class="item-list">
+            <div class="item-card">Example Item 1</div>
+            <div class="item-card">Example Item 2</div>
+            <div class="item-card">Example Item 3</div>
+        </div>
+    </div>
+</body>
+</html>
