@@ -13,6 +13,7 @@
         .container {
             width: 90%;
             margin: auto;
+            padding: 20px;
         }
         .item-list {
             display: flex;
@@ -23,7 +24,7 @@
             border: 1px solid #ddd;
             padding: 10px;
             margin: 10px;
-            width: 120px;
+            width: 150px;
             text-align: center;
             background-color: #fff;
             cursor: pointer;
@@ -34,7 +35,14 @@
             height: 64px;
         }
         .spawn-form {
-            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+        .filters {
+            margin-bottom: 20px;
+        }
+        .filters select {
+            margin: 5px;
+            padding: 10px;
         }
     </style>
 </head>
@@ -48,49 +56,82 @@
         <input type="number" id="quantity" name="quantity" value="1" min="1">
     </div>
 
+    <!-- Filter Options -->
+    <div class="filters">
+        <select id="category-filter">
+            <option value="all">All Categories</option>
+            <option value="Tool">Tool</option>
+            <option value="Item">Item</option>
+            <option value="Gem">Gem</option>
+        </select>
+
+        <select id="rarity-filter">
+            <option value="all">All Rarities</option>
+            <option value="Common">Common</option>
+            <option value="Uncommon">Uncommon</option>
+            <option value="Rare">Rare</option>
+            <option value="Legendary">Legendary</option>
+            <option value="Mythic">Mythic</option>
+        </select>
+    </div>
+
+    <!-- Item List -->
     <div class="item-list" id="item-list">
-        <!-- Items will be inserted here -->
+        <!-- Example Item Cards (Manually Add More Below) -->
+        <div class="item-card" data-category="Tool" data-subcategory="Axe" data-rarity="Rare" data-id="101">
+            <img src="images/copper_axe.png" alt="Copper Axe">
+            <p>Copper Axe</p>
+        </div>
+
+        <div class="item-card" data-category="Tool" data-subcategory="Pickaxe" data-rarity="Uncommon" data-id="102">
+            <img src="images/iron_pickaxe.png" alt="Iron Pickaxe">
+            <p>Iron Pickaxe</p>
+        </div>
+
+        <div class="item-card" data-category="Gem" data-subcategory="" data-rarity="Legendary" data-id="103">
+            <img src="images/diamond.png" alt="Diamond">
+            <p>Diamond</p>
+        </div>
+
+        <div class="item-card" data-category="Item" data-subcategory="Crop" data-rarity="Common" data-id="104">
+            <img src="images/parsnip.png" alt="Parsnip">
+            <p>Parsnip</p>
+        </div>
     </div>
 </div>
 
 <script>
-// Example function to fetch item data from a Stardew Valley wiki or API
-async function fetchItemData() {
-    const response = await fetch('https://stardewvalleywiki.com/mediawiki/api.php?action=query&format=json&list=categorymembers&cmtitle=Category:Items&cmlimit=500&origin=*');
-    const data = await response.json();
-    return data.query.categorymembers;
-}
-
-// Generate item cards dynamically
-async function generateItemCards() {
-    const itemList = document.getElementById('item-list');
-    const items = await fetchItemData();
-
-    items.forEach(item => {
-        const itemCard = document.createElement('div');
-        itemCard.className = 'item-card';
-        itemCard.innerHTML = `
-            <img src="https://stardewvalleywiki.com/mediawiki/images/${item.title.replace(/ /g, '_')}.png" alt="${item.title}">
-            <p>${item.title}</p>
-        `;
-        itemCard.dataset.itemId = item.pageid;
-
-        itemCard.addEventListener('click', () => {
-            spawnItem(item.pageid);
+    // Function to handle spawning items by clicking on the card
+    document.querySelectorAll('.item-card').forEach(card => {
+        card.addEventListener('click', () => {
+            const itemId = card.dataset.id;
+            const quantity = document.getElementById('quantity').value;
+            window.location.href = `http://localhost:8080/?item=${itemId}&quantity=${quantity}`;
         });
-
-        itemList.appendChild(itemCard);
     });
-}
 
-// Spawn item function
-function spawnItem(itemId) {
-    const quantity = document.getElementById('quantity').value;
-    window.location.href = `http://localhost:8080/?item=${itemId}&quantity=${quantity}`;
-}
+    // Filter Functionality
+    const categoryFilter = document.getElementById('category-filter');
+    const rarityFilter = document.getElementById('rarity-filter');
 
-// Call the item card generation function when the page loads
-generateItemCards();
+    function filterItems() {
+        const selectedCategory = categoryFilter.value;
+        const selectedRarity = rarityFilter.value;
+
+        document.querySelectorAll('.item-card').forEach(card => {
+            const matchesCategory = selectedCategory === 'all' || card.dataset.category === selectedCategory;
+            const matchesRarity = selectedRarity === 'all' || card.dataset.rarity === selectedRarity;
+
+            if (matchesCategory && matchesRarity) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    }
+
+    categoryFilter.addEventListener('change', filterItems);
+    rarityFilter.addEventListener('change', filterItems);
 </script>
 
 </body>
