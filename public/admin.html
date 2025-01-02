@@ -26,34 +26,60 @@
 <script>
 let files = {};
 
+// Fetch files from the server and log the response to the console
 async function fetchFiles() {
-    const response = await fetch('/admin/api/files');
-    files = await response.json();
-    loadFile('index.html');
+    try {
+        const response = await fetch('/admin/api/files');
+        const data = await response.json();
+
+        console.log('Full API Response:', data);
+
+        if (data.logs) {
+            data.logs.forEach(log => console.log(log));
+        }
+
+        files = {
+            'index.html': data.index,
+            'info.json': data.info
+        };
+
+        loadFile(document.getElementById('file-selector').value);
+    } catch (error) {
+        console.error('Failed to fetch files:', error);
+    }
 }
 
+// Load the selected file into the editor
 function loadFile(filename) {
-    document.getElementById('editor').value = files[filename];
+    const content = files[filename];
+    document.getElementById('editor').value = content !== undefined ? content : 'File not found';
 }
 
+// Save the updated content back to the server
 async function saveFile() {
     const filename = document.getElementById('file-selector').value;
     const content = document.getElementById('editor').value;
 
-    const response = await fetch('/admin/api/save', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ filename, content })
-    });
+    try {
+        const response = await fetch('/admin/api/save', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ filename, content })
+        });
 
-    const message = await response.text();
-    alert(message);
+        const message = await response.text();
+        alert(message);
+    } catch (error) {
+        console.error('Failed to save file:', error);
+    }
 }
 
+// Automatically reload the file when the selector changes
 document.getElementById('file-selector').addEventListener('change', (e) => {
     loadFile(e.target.value);
 });
 
+// Fetch files on page load
 fetchFiles();
 </script>
 

@@ -10,37 +10,77 @@ const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
 const PORT = process.env.PORT || 8080;
-const INFO_PATH = path.join(__dirname, 'data', 'info.json');
-const HTML_PATH = path.join(__dirname, 'public', 'index.html');
+
+// Correct path for Azure App Service
+const ROOT_PATH = path.join(__dirname, '..', 'wwwroot');
+const INFO_PATH = path.join(ROOT_PATH, 'data', 'info.json');
+const HTML_PATH = path.join(ROOT_PATH, 'public', 'index.html');
 
 // Serve static files
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(ROOT_PATH, 'public')));
 
 // Basic authentication for admin
 app.use('/admin', basicAuth({
-    users: { 'x': 'xxxxxx' },
+    users: { '': '' },
     challenge: true,
     unauthorizedResponse: 'Unauthorized'
 }));
 
 // Admin interface to edit files
 app.get('/admin', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'admin.html'));
+    res.sendFile(path.join(ROOT_PATH, 'public', 'admin.html'));
 });
 
-app.get('/admin/api/files', (req, res) => {
-    try {
-        const files = {
-            index: fs.readFileSync(HTML_PATH, 'utf8') || 'File not found',
-            info: fs.readFileSync(INFO_PATH, 'utf8') || 'File not found'
-        };
-        res.json(files);
-    } catch (err) {
-        console.error('Error reading files:', err.message);
-        res.status(500).json({ error: 'Failed to load files.', details: err.message });
+app.post('/admin/api/save', express.json(), (req, res) => {
+    const { filename, content } = req.body;
+
+    const validFiles = {
+        'index.html': HTML_PATH,
+        'info.json': INFO_PATH
+    };
+
+    if (validFiles[filename]) {
+        fs.writeFile(validFiles[filename], content, (err) => {
+            if (err) {
+                console.error('Failed to save file:', err.message);
+                return res.status(500).send('Failed to save file.');
+            }
+            res.status(200).send('File saved successfully.');
+        });
+    } else {
+        res.status(400).send('Invalid file.');
     }
 });
 
+
+app.get('/admin/api/files', (req, res) => {
+    try {
+        // Force open the files
+        const indexFd = fs.openSync(HTML_PATH, 'r');
+        const infoFd = fs.openSync(INFO_PATH, 'r');
+
+        const indexContent = fs.readFileSync(indexFd, 'utf8') || 'index.html not found';
+        const infoContent = fs.readFileSync(infoFd, 'utf8') || 'info.json not found';
+
+        fs.closeSync(indexFd);
+        fs.closeSync(infoFd);
+
+        console.log('HTML Path:', HTML_PATH);
+        console.log('JSON Path:', INFO_PATH);
+
+        const files = {
+            index: indexContent,
+            info: infoContent,
+            logs: [
+                `index.html content: ${indexContent.substring(0, 200)}...`,
+                `info.json content: ${infoContent.substring(0, 200)}...`
+            ]
+        };
+        res.json(files);
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to load files.', details: err.message });
+    }
+});
 
 // Serve info.json as raw JSON
 app.get('/info.json', (req, res) => {
@@ -62,25 +102,6 @@ app.get('/raw-index', (req, res) => {
     });
 });
 
-app.post('/admin/api/save', express.json(), (req, res) => {
-    const { filename, content } = req.body;
-
-    const validFiles = {
-        'index.html': HTML_PATH,
-        'info.json': INFO_PATH
-    };
-
-    if (validFiles[filename]) {
-        fs.writeFile(validFiles[filename], content, (err) => {
-            if (err) return res.status(500).send('Failed to save file.');
-            broadcast({ type: 'update', items: JSON.parse(content) });
-            res.status(200).send('File saved successfully.');
-        });
-    } else {
-        res.status(400).send('Invalid file.');
-    }
-});
-
 // WebSocket broadcast for live updates
 wss.on('connection', (ws) => {
     fs.readFile(INFO_PATH, 'utf8', (err, data) => {
@@ -89,14 +110,6 @@ wss.on('connection', (ws) => {
         }
     });
 });
-
-function broadcast(message) {
-    wss.clients.forEach(client => {
-        if (client.readyState === WebSocket.OPEN) {
-            client.send(JSON.stringify(message));
-        }
-    });
-}
 
 server.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);

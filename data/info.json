@@ -2,18 +2,32 @@
 {
   "items": [
     {
-      "id": "101",
-      "name": "Arrowhead",
-      "category": "Item",
+      "id": "0",
+      "name": "Weeds",
+      "category": "Misc",
       "rarity": "None",
-      "image": "https://stardewvalleywiki.com/mediawiki/images/d/d1/Arrowhead.png"
+      "image": "https://stardewvalleywiki.com/mediawiki/images/9/96/Green_Rain_Large_Weed_2.png"
     },
     {
-      "id": "102",
-      "name": "Copper Axe",
-      "category": "Tool",
-      "rarity": "Common",
-      "image": "https://stardewvalleywiki.com/mediawiki/images/5/5e/Copper_Axe.png"
+      "id": "1",
+      "name": "House Plant",
+      "category": "Misc",
+      "rarity": "None",
+      "image": "https://stardewvalleywiki.com/mediawiki/images/archive/5/5f/20170122051236%21House_Plant_9.png"
+    },
+    {
+      "id": "2",
+      "name": "Diamond Stone",
+      "category": "Misc",
+      "rarity": "Uncommon",
+      "image": "https://stardewvalleywiki.com/mediawiki/images/0/0e/Diamond_Node.png"
+    },
+    {
+      "id": "3",
+      "name": "Diamond Stone",
+      "category": "Misc",
+      "rarity": "Uncommon",
+      "image": "https://stardewvalleywiki.com/mediawiki/images/0/0e/Diamond_Node.png"
     }
   ]
 }
