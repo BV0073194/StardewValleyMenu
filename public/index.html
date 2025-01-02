@@ -1,72 +1,82 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>B's Modding Menu - v1.0.0 (SMAPI)</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>B's Modding Menu - v1.0.0 (SMAPI)</title>
 
-	<!-- Bootstrap CDN -->
-	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
-	<!-- Custom CSS -->
-	<link rel="stylesheet" href="https://stardewmenu-bxh8fzbpacfrfhdx.westus2-01.azurewebsites.net/style.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="https://stardewmenu-bxh8fzbpacfrfhdx.westus2-01.azurewebsites.net/style.css">
 
-	<!-- Stardew Valley-style Font -->
-	<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <!-- Stardew Valley-style Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 
-	<!-- Favicon -->
-	<link rel="shortcut icon" href="https://stardewvalleywiki.com/mediawiki/extensions/StardewValley/images/favicon.png">
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="https://stardewvalleywiki.com/mediawiki/extensions/StardewValley/images/favicon.png">
 
-	<style>
-	  body {
-		font-family: 'Press Start 2P', monospace;
-	  }
-	  .item-card p {
-		font-size: 12px;
-	  }
-	  .item-card u {
-		font-family: 'Comic Sans MS', cursive, sans-serif; /* Replace with exact font if available */
-		font-size: 18px;
-		color: #ffffff; /* Inner blue color */
+    <style>
+      body {
+        font-family: 'Press Start 2P', monospace;
+      }
+      .item-card p {
+        font-size: 12px;
+      }
+      .item-card u {
+		font-family: 'Comic Sans MS', cursive, sans-serif;
+		font-size: 1.2rem;
+		color: #ffffff;
 		text-shadow:
 		  -1px -1px 0 #000, /* Top-left outline */
 		  1px -1px 0 #000,  /* Top-right outline */
 		  -1px 1px 0 #000,  /* Bottom-left outline */
 		  1px 1px 0 #000;   /* Bottom-right outline */
 	  }
-	  
-	  /* Terraria Rarity Colors */
-	  .item-card[data-rarity="None"] u {
-		color: #FFFFFF; /* White for None */
-	  }
-	  .item-card[data-rarity="Common"] u {
-		color: #7a7ad4; /* Blue for Common */
-	  }
-	  .item-card[data-rarity="Uncommon"] u {
-		color: #8aeb8a; /* Green for Uncommon */
-	  }
-	  .item-card[data-rarity="Rare"] u {
-		color: #dca982; /* Orange for Rare */
-	  }
-	  .item-card[data-rarity="Legendary"] u {
-		color: #e68b8b; /* Pink for Legendary */
-	  }
-	  .item-card[data-rarity="Mythic"] u {
-		color: #aa22ee; /* Purple for Mythic */
-	  }
 
-	</style>
+	  /* Mobile devices (target iOS and Android) */
+	  @media only screen and (max-width: 768px) {
+		.item-card u {
+		  font-family: Arial, sans-serif;  /* Set Arial for mobile */
+		}
+	  }
+      /* Terraria Rarity Colors */
+      .item-card[data-rarity="None"] u {
+        color: #FFFFFF; /* White for None */
+      }
+      .item-card[data-rarity="Common"] u {
+        color: #7a7ad4; /* Blue for Common */
+      }
+      .item-card[data-rarity="Uncommon"] u {
+        color: #8aeb8a; /* Green for Uncommon */
+      }
+      .item-card[data-rarity="Rare"] u {
+        color: #dca982; /* Orange for Rare */
+      }
+      .item-card[data-rarity="Legendary"] u {
+        color: #e68b8b; /* Pink for Legendary */
+      }
+      .item-card[data-rarity="Mythic"] u {
+        color: #aa22ee; /* Purple for Mythic */
+      }
+    </style>
   </head>
 
   <body>
     <div class="container my-5 p-4 rounded shadow">
       <h1 class="mb-4">B's Modding Menu : v1.0.0 (SMAPI)</h1>
-      
+
       <div class="spawn-form mb-4">
         <label for="quantity" class="form-label">Quantity:</label>
         <input type="number" id="quantity" name="quantity" class="form-control mx-auto w-auto" value="1" min="1">
       </div>
-      
+
+      <!-- Search Input -->
+      <div class="search-form mb-4 d-flex justify-content-center">
+        <input type="text" id="search-input" class="form-control w-50" placeholder="Search by name, subcategory, or keywords">
+      </div>
+
       <!-- Filter Options -->
       <div class="filters mb-4 d-flex flex-wrap justify-content-center gap-3">
         <select id="category-filter" class="form-select w-auto">
@@ -76,7 +86,7 @@
           <option value="Decoration">Decoration</option>
           <option value="Misc">Misc</option>
         </select>
-        
+
         <select id="rarity-filter" class="form-select w-auto">
           <option value="all">All Rarities</option>
           <option value="None">None</option>
@@ -93,8 +103,19 @@
         <!-- Items will be dynamically added -->
       </div>
     </div>
-    
+
     <script>
+      // Debounce function
+      function debounce(func, delay) {
+        let timeout;
+        return function() {
+          clearTimeout(timeout);
+          timeout = setTimeout(() => {
+            func.apply(this, arguments);
+          }, delay);
+        };
+      }
+
       document.addEventListener('DOMContentLoaded', () => {
         const itemList = document.getElementById('item-list');
         itemList.style.gap = '15px';
@@ -109,17 +130,19 @@
         filterItems();
       });
     </script>
-
+	
     <script>
       let itemData = [];
-      
+      let filteredData = [];
+
       async function fetchItemList() {
         try {
           const response = await fetch('https://stardewmenu-bxh8fzbpacfrfhdx.westus2-01.azurewebsites.net/info.json');
           if (response.ok) {
             const data = await response.json();
             itemData = data.items;
-            renderItems(itemData);
+            filteredData = itemData;
+            renderItems(filteredData);
           } else {
             console.error('Failed to load item list:', response.statusText);
           }
@@ -128,64 +151,94 @@
         }
       }
 
+      function groupItemsBySubcategory(items) {
+        const groupedItems = {};
+
+        items.forEach(item => {
+          const subcategory = item.subcategory || 'Uncategorized'; // Default to 'Uncategorized' if no subcategory
+          
+          if (!groupedItems[subcategory]) {
+            groupedItems[subcategory] = [];
+          }
+          
+          groupedItems[subcategory].push(item);
+        });
+
+        return groupedItems;
+      }
+
       function renderItems(items) {
         const itemList = document.getElementById('item-list');
         itemList.innerHTML = '';
 
-        items.forEach(item => {
-          const itemCard = document.createElement('div');
-          itemCard.classList.add('item-card');
+        const groupedItems = groupItemsBySubcategory(items);
 
-          itemCard.dataset.category = item.category;
-          itemCard.dataset.rarity = item.rarity;
-          itemCard.dataset.id = item.id;
+        // Render each group
+        for (const [subcategory, itemsInGroup] of Object.entries(groupedItems)) {
+          itemsInGroup.forEach(item => {
+            const itemCard = document.createElement('div');
+            itemCard.classList.add('item-card');
 
-          itemCard.innerHTML = `
-		  	<u class="custom-font">${item.rarity}</u>
-            <img src="${item.image}" alt="${item.name}">
-            <p>${item.name}</p>
-          `;
+            itemCard.dataset.category = item.category;
+            itemCard.dataset.rarity = item.rarity;
+            itemCard.dataset.id = item.id;
 
-          itemCard.addEventListener('click', () => {
-            const quantity = document.getElementById('quantity').value;
-            const itemId = item.id;
-            // Send give item command without reloading
-            fetch(`./give?item=${itemId}&quantity=${quantity}`)
-              .then(response => {
-                if (response.ok) {
-                  return;
-                } else {
-                  alert('Failed to add item.');
-                }
-              });
+            itemCard.innerHTML = `
+              <u class="custom-font">${item.rarity}</u>
+              <img src="${item.image}" alt="${item.name}">
+              <p>${item.name}</p>
+            `;
+
+            itemCard.addEventListener('click', () => {
+              const quantity = document.getElementById('quantity').value;
+              const itemId = item.id;
+              // Send give item command without reloading
+              fetch(`./give?item=${itemId}&quantity=${quantity}`)
+                .then(response => {
+                  if (response.ok) {
+                    return;
+                  } else {
+                    alert('Failed to add item.');
+                  }
+                });
+            });
+
+            itemList.appendChild(itemCard);
           });
-
-          itemList.appendChild(itemCard);
-        });
+        }
 
         filterItems();
       }
 
-      function filterItems() {
-        const selectedCategory = document.getElementById('category-filter').value;
-        const selectedRarity = document.getElementById('rarity-filter').value;
+	  function filterItems() {
+		const selectedCategory = document.getElementById('category-filter').value;
+		const selectedRarity = document.getElementById('rarity-filter').value;
+		const searchTerm = document.getElementById('search-input').value.toLowerCase();
 
-        document.querySelectorAll('.item-card').forEach(card => {
-          const matchesCategory = selectedCategory === 'all' || card.dataset.category === selectedCategory;
-          const matchesRarity = selectedRarity === 'all' || card.dataset.rarity === selectedRarity;
-          
-          card.style.display = (matchesCategory && matchesRarity) ? 'block' : 'none';
-        });
+		filteredData = itemData.filter(item => {
+		  const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
+		  const matchesRarity = selectedRarity === 'all' || item.rarity === selectedRarity;
+		  const matchesSearch = item.name.toLowerCase().includes(searchTerm) || 
+								(item.subcategory && item.subcategory.toLowerCase().includes(searchTerm)) ||
+								(item.keywords && item.keywords.some(keyword => keyword.toLowerCase().includes(searchTerm))); // Check if keywords exist
 
-        // Save filters to localStorage
-        localStorage.setItem('categoryFilter', selectedCategory);
-        localStorage.setItem('rarityFilter', selectedRarity);
-      }
+		  return matchesCategory && matchesRarity && matchesSearch;
+		});
+
+		renderItems(filteredData);
+
+		// Save filters to localStorage
+		localStorage.setItem('categoryFilter', selectedCategory);
+		localStorage.setItem('rarityFilter', selectedRarity);
+	  }
 
       document.getElementById('category-filter').addEventListener('change', filterItems);
       document.getElementById('rarity-filter').addEventListener('change', filterItems);
-      
-      setInterval(fetchItemList, 5000);
+
+      // Use debounce to delay search
+      document.getElementById('search-input').addEventListener('input', debounce(filterItems, 500));
+
+      setInterval(fetchItemList, 2000);
       fetchItemList();
     </script>
   </body>

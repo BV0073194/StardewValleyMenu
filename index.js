@@ -22,7 +22,7 @@ app.use(express.static(path.join(ROOT_PATH, 'public')));
 
 // Basic authentication for admin
 app.use('/admin', basicAuth({
-    users: { '': '' },
+    users: { '' : '' },
     challenge: true,
     unauthorizedResponse: 'Unauthorized'
 }));
