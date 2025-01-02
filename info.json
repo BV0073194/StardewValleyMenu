@@ -1,1 +1,25 @@
-
+{
+  "items": [
+    {
+      "id": "101",
+      "name": "Arrowhead",
+      "category": "Item",
+      "rarity": "None",
+      "image": "https://stardewvalleywiki.com/mediawiki/images/d/d1/Arrowhead.png"
+    },
+    {
+      "id": "102",
+      "name": "Copper Axe",
+      "category": "Tool",
+      "rarity": "Common",
+      "image": "https://stardewvalleywiki.com/mediawiki/images/5/5e/Copper_Axe.png"
+    },
+    {
+      "id": "103",
+      "name": "Diamond",
+      "category": "Item",
+      "rarity": "Legendary",
+      "image": "https://stardewvalleywiki.com/mediawiki/images/e/e9/Diamond.png"
+    }
+  ]
+}
