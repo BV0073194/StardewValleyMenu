@@ -46,7 +46,14 @@
       "id": "10",
       "name": "???",
       "category": "Misc",
-      "rarity": "None",
+      "rarity": "Mythic",
+      "image": "https://stardewvalleywiki.com/mediawiki/images/6/6c/Emote_Question.png"
+    },
+    {
+      "id": "11",
+      "name": "???",
+      "category": "Misc",
+      "rarity": "Mythic",
       "image": "https://stardewvalleywiki.com/mediawiki/images/6/6c/Emote_Question.png"
     }
   ]

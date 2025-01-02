@@ -1,18 +1,61 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>B's Modding Menu - v1.0.0 (SMAPI)</title>
-    
-    <!-- Bootstrap CDN -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="https://stardewmenu-bxh8fzbpacfrfhdx.westus2-01.azurewebsites.net/style.css">
-    
-    <!-- Favicon -->
-    <link rel="shortcut icon" href="https://stardewvalleywiki.com/mediawiki/extensions/StardewValley/images/favicon.png">
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>B's Modding Menu - v1.0.0 (SMAPI)</title>
+
+	<!-- Bootstrap CDN -->
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+	<!-- Custom CSS -->
+	<link rel="stylesheet" href="https://stardewmenu-bxh8fzbpacfrfhdx.westus2-01.azurewebsites.net/style.css">
+
+	<!-- Stardew Valley-style Font -->
+	<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+
+	<!-- Favicon -->
+	<link rel="shortcut icon" href="https://stardewvalleywiki.com/mediawiki/extensions/StardewValley/images/favicon.png">
+
+	<style>
+	  body {
+		font-family: 'Press Start 2P', monospace;
+	  }
+	  .item-card p {
+		font-size: 12px;
+	  }
+	  .item-card u {
+		font-family: 'Comic Sans MS', cursive, sans-serif; /* Replace with exact font if available */
+		font-size: 18px;
+		color: #ffffff; /* Inner blue color */
+		text-shadow:
+		  -1px -1px 0 #000, /* Top-left outline */
+		  1px -1px 0 #000,  /* Top-right outline */
+		  -1px 1px 0 #000,  /* Bottom-left outline */
+		  1px 1px 0 #000;   /* Bottom-right outline */
+	  }
+	  
+	  /* Terraria Rarity Colors */
+	  .item-card[data-rarity="None"] u {
+		color: #FFFFFF; /* White for None */
+	  }
+	  .item-card[data-rarity="Common"] u {
+		color: #7a7ad4; /* Blue for Common */
+	  }
+	  .item-card[data-rarity="Uncommon"] u {
+		color: #8aeb8a; /* Green for Uncommon */
+	  }
+	  .item-card[data-rarity="Rare"] u {
+		color: #dca982; /* Orange for Rare */
+	  }
+	  .item-card[data-rarity="Legendary"] u {
+		color: #e68b8b; /* Pink for Legendary */
+	  }
+	  .item-card[data-rarity="Mythic"] u {
+		color: #aa22ee; /* Purple for Mythic */
+	  }
+
+	</style>
   </head>
 
   <body>
@@ -98,6 +141,7 @@
           itemCard.dataset.id = item.id;
 
           itemCard.innerHTML = `
+		  	<u class="custom-font">${item.rarity}</u>
             <img src="${item.image}" alt="${item.name}">
             <p>${item.name}</p>
           `;
