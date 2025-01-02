@@ -42,60 +42,62 @@
 </div>
 
 <script>
-    // Fetch and update item list dynamically without refreshing the page
-    async function fetchItemList() {
-        try {
-            const response = await fetch('https://raw.githubusercontent.com/BV0073194/StardewValleyMenu/refs/heads/main/index.html');
-            if (response.ok) {
-                const html = await response.text();
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(html, 'text/html');
-                const newItemList = doc.getElementById('item-list');
-                
-                if (newItemList) {
-                    document.getElementById('item-list').innerHTML = newItemList.innerHTML;
-                    filterItems();
-                    attachItemClickEvents();
-                }
-            } else {
-                console.error('Failed to load HTML:', response.statusText);
+async function fetchItemList() {
+    try {
+        const response = await fetch('https://raw.githubusercontent.com/BV0073194/StardewValleyMenu/refs/heads/main/index.html');
+        if (response.ok) {
+            const html = await response.text();
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            const newItemList = doc.getElementById('item-list');
+            
+            if (newItemList) {
+                document.getElementById('item-list').innerHTML = newItemList.innerHTML;
+                filterItems();  // Reapply filters on update
+                attachItemClickEvents();  // Reattach event listeners
             }
-        } catch (error) {
-            console.error('Error fetching HTML:', error);
+        } else {
+            console.error('Failed to load HTML:', response.statusText);
         }
+    } catch (error) {
+        console.error('Error fetching HTML:', error);
     }
+}
 
-    function attachItemClickEvents() {
-        document.querySelectorAll('.item-card').forEach(card => {
-            card.addEventListener('click', () => {
-                const itemId = card.dataset.id;
-                const quantity = document.getElementById('quantity').value;
-                window.location.href = `/?item=${itemId}&quantity=${quantity}`;
-            });
+// Reattach item click events dynamically
+function attachItemClickEvents() {
+    document.querySelectorAll('.item-card').forEach(card => {
+        card.addEventListener('click', () => {
+            const itemId = card.dataset.id;
+            const quantity = document.getElementById('quantity').value;
+            window.location.href = `/?item=${itemId}&quantity=${quantity}`;
         });
-    }
+    });
+}
 
-    // Initialize filtering logic
-    const categoryFilter = document.getElementById('category-filter');
-    const rarityFilter = document.getElementById('rarity-filter');
+// Filtering logic
+const categoryFilter = document.getElementById('category-filter');
+const rarityFilter = document.getElementById('rarity-filter');
 
-    function filterItems() {
-        const selectedCategory = categoryFilter.value;
-        const selectedRarity = rarityFilter.value;
+function filterItems() {
+    const selectedCategory = categoryFilter.value;
+    const selectedRarity = rarityFilter.value;
 
-        document.querySelectorAll('.item-card').forEach(card => {
-            const matchesCategory = selectedCategory === 'all' || card.dataset.category === selectedCategory;
-            const matchesRarity = selectedRarity === 'all' || card.dataset.rarity === selectedRarity;
+    document.querySelectorAll('.item-card').forEach(card => {
+        const matchesCategory = selectedCategory === 'all' || card.dataset.category === selectedCategory;
+        const matchesRarity = selectedRarity === 'all' || card.dataset.rarity === selectedRarity;
 
-            card.style.display = (matchesCategory && matchesRarity) ? 'block' : 'none';
-        });
-    }
+        card.style.display = (matchesCategory && matchesRarity) ? 'block' : 'none';
+    });
+}
 
-    categoryFilter.addEventListener('change', filterItems);
-    rarityFilter.addEventListener('change', filterItems);
+// Filter event listeners
+categoryFilter.addEventListener('change', filterItems);
+rarityFilter.addEventListener('change', filterItems);
 
-    setInterval(fetchItemList, 5000);
-    fetchItemList();
+// Refresh item list every 5 seconds
+setInterval(fetchItemList, 5000);
+fetchItemList();
 </script>
 
 
