@@ -1,0 +1,14 @@
+
+{
+  "name": "stardew-valley-app",
+  "version": "1.0.0",
+  "description": "Live updating item spawner menu for Stardew Valley",
+  "main": "server.js",
+  "dependencies": {
+    "express": "^4.18.2",
+    "ws": "^8.11.0"
+  },
+  "scripts": {
+    "start": "node server.js"
+  }
+}

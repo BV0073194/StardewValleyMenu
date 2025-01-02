@@ -1,0 +1,32 @@
+
+body {
+    font-family: 'Arial', sans-serif;
+    text-align: center;
+    background-color: #f0f0f0;
+    margin: 0;
+    padding: 0;
+}
+.container {
+    margin: 50px auto;
+    max-width: 900px;
+}
+.item-list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+.item-card {
+    margin: 10px;
+    border: 2px solid #7c5c42;
+    padding: 15px;
+    width: 150px;
+    cursor: pointer;
+    background-color: #f9e3b4;
+}
+.item-card:hover {
+    background-color: #ebcb88;
+}
+.item-card img {
+    width: 80px;
+    height: 80px;
+}

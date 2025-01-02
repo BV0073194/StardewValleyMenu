@@ -1,0 +1,64 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>B's Stardew Valley Modding Menu</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="container">
+    <h1>Stardew Valley Item Spawner</h1>
+
+    <div class="spawn-form">
+        <label for="quantity">Quantity:</label>
+        <input type="number" id="quantity" name="quantity" value="1" min="1">
+    </div>
+
+    <div class="filters">
+        <select id="category-filter">
+            <option value="all">All Categories</option>
+        </select>
+        <select id="rarity-filter">
+            <option value="all">All Rarities</option>
+        </select>
+    </div>
+
+    <div class="item-list" id="item-list"></div>
+</div>
+
+<script>
+const socket = new WebSocket(`ws://${window.location.host}`);
+fetch('/api/items').then(res => res.json()).then(data => renderItems(data.items));
+
+socket.onmessage = (event) => {
+    const data = JSON.parse(event.data);
+    if (data.type === 'update') {
+        renderItems(data.items);
+    }
+};
+
+function renderItems(items) {
+    const itemList = document.getElementById('item-list');
+    itemList.innerHTML = '';
+    items.forEach(item => {
+        const itemCard = document.createElement('div');
+        itemCard.classList.add('item-card');
+        itemCard.dataset.category = item.category;
+        itemCard.dataset.rarity = item.rarity;
+        itemCard.dataset.id = item.id;
+
+        itemCard.innerHTML = `<img src="${item.image}" alt="${item.name}"><p>${item.name}</p>`;
+        itemCard.addEventListener('click', () => {
+            const quantity = document.getElementById('quantity').value;
+            window.location.href = `/?item=${item.id}&quantity=${quantity}`;
+        });
+
+        itemList.appendChild(itemCard);
+    });
+}
+</script>
+</body>
+</html>
