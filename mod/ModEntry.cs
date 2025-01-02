@@ -40,14 +40,15 @@ namespace ItemSpawnMenuMod
         {
             serverThread = new Thread(async () =>
             {
-                listener = new HttpListener();
                 try
                 {
+                    listener = new HttpListener();
                     listener.Prefixes.Add("http://*:8080/");
                     listener.Start();
                 }
                 catch (Exception ex)
                 {
+                    listener = new HttpListener();
                     listener.Prefixes.Add("http://localhost:8080/");
                     listener.Start();
                 }
