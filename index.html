@@ -128,7 +128,7 @@
 
         <select id="rarity-filter">
             <option value="all">All Rarities</option>
-            <option value="all">None</option>
+            <option value="None">None</option>
             <option value="Common">Common</option>
             <option value="Uncommon">Uncommon</option>
             <option value="Rare">Rare</option>
@@ -147,16 +147,6 @@
 </div>
 
 <script>
-    document.querySelectorAll('.item-card').forEach(card => {
-        card.addEventListener('click', () => {
-            const itemId = card.dataset.id;
-            const quantity = document.getElementById('quantity').value;
-            window.location.href = `/?item=${itemId}&quantity=${quantity}`;
-        });
-    });
-</script>
-    
-<script>
     const categoryFilter = document.getElementById('category-filter');
     const rarityFilter = document.getElementById('rarity-filter');
 
@@ -165,22 +155,15 @@
         const selectedRarity = rarityFilter.value;
 
         document.querySelectorAll('.item-card').forEach(card => {
-            const matchesCategory = (selectedCategory === 'all' || card.dataset.category === selectedCategory) && selectedCategory !== 'placeholder';
-            const matchesRarity = (selectedRarity === 'all' || card.dataset.rarity === selectedRarity) && selectedRarity !== 'placeholder';
+            const matchesCategory = selectedCategory === 'all' || card.dataset.category === selectedCategory;
+            const matchesRarity = selectedRarity === 'all' || card.dataset.rarity === selectedRarity;
 
-            // Show only if category and rarity match or "all" is selected
-            if ((matchesCategory && matchesRarity) || (selectedRarity !== 'placeholder' && selectedCategory === 'placeholder')) {
-                card.style.display = 'block';
-            } else {
-                card.style.display = 'none';
-            }
+            card.style.display = (matchesCategory && matchesRarity) ? 'block' : 'none';
         });
     }
 
     categoryFilter.addEventListener('change', filterItems);
     rarityFilter.addEventListener('change', filterItems);
-
-    // Initialize filter on page load
     window.onload = filterItems;
 </script>
 
