@@ -1,8 +1,10 @@
-<html lang="en"><head>
+<html lang="en">
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>B's Stardew Valley Modding Menu</title>
     <link rel="stylesheet" href="https://bv0073194.github.io/StardewValleyMenu/style.css">
+</head>
 <body>
 
 <div class="container">
@@ -33,50 +35,45 @@
     </div>
 
     <!-- Item List -->
-    <div class="item-list" id="item-list">
-        <div class="item-card" data-category="Item" data-subcategory="Item" data-rarity="None" data-id="101">
-            <img src="https://stardewvalleywiki.com/mediawiki/images/d/d1/Arrowhead.png" alt="Arrowhead">
-            <p>Arrowhead</p>
-        </div>
-        <div class="item-card" data-category="Item" data-subcategory="Item" data-rarity="None" data-id="101">
-            <img src="https://stardewvalleywiki.com/mediawiki/images/d/d1/Arrowhead.png" alt="Arrowhead">
-            <p>Ahh</p>
-        </div>
-    </div>
+    <div class="item-list" id="item-list"></div>
 </div>
 
 <script>
 async function fetchItemList() {
     try {
-        const response = await fetch('https://raw.githubusercontent.com/BV0073194/StardewValleyMenu/refs/heads/main/index.html');
+        const response = await fetch('https://raw.githubusercontent.com/BV0073194/StardewValleyMenu/refs/heads/main/info.json');
         if (response.ok) {
-            const html = await response.text();
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(html, 'text/html');
-            const newItemList = doc.getElementById('item-list');
-            
-            if (newItemList) {
-                document.getElementById('item-list').innerHTML = newItemList.innerHTML;
-                filterItems();  // Reapply filters on update
-                attachItemClickEvents();  // Reattach event listeners
-            }
+            const data = await response.json();
+            const itemList = document.getElementById('item-list');
+            itemList.innerHTML = '';  // Clear current items
+
+            data.items.forEach(item => {
+                const itemCard = document.createElement('div');
+                itemCard.classList.add('item-card');
+                itemCard.dataset.category = item.category;
+                itemCard.dataset.rarity = item.rarity;
+                itemCard.dataset.id = item.id;
+
+                itemCard.innerHTML = `
+                    <img src="${item.image}" alt="${item.name}">
+                    <p>${item.name}</p>
+                `;
+
+                itemCard.addEventListener('click', () => {
+                    const quantity = document.getElementById('quantity').value;
+                    window.location.href = `/?item=${item.id}&quantity=${quantity}`;
+                });
+
+                itemList.appendChild(itemCard);
+            });
+
+            filterItems();  // Reapply filters after adding new items
         } else {
-            console.error('Failed to load HTML:', response.statusText);
+            console.error('Failed to load item list:', response.statusText);
         }
     } catch (error) {
-        console.error('Error fetching HTML:', error);
+        console.error('Error fetching item list:', error);
     }
-}
-
-// Reattach item click events dynamically
-function attachItemClickEvents() {
-    document.querySelectorAll('.item-card').forEach(card => {
-        card.addEventListener('click', () => {
-            const itemId = card.dataset.id;
-            const quantity = document.getElementById('quantity').value;
-            window.location.href = `/?item=${itemId}&quantity=${quantity}`;
-        });
-    });
 }
 
 // Filtering logic
@@ -95,15 +92,14 @@ function filterItems() {
     });
 }
 
-// Filter event listeners
+// Event Listeners for Filter Changes
 categoryFilter.addEventListener('change', filterItems);
 rarityFilter.addEventListener('change', filterItems);
 
-// Refresh item list every 5 seconds
-setInterval(fetchItemList, 100);
+// Fetch and refresh item list every 10 seconds
+setInterval(fetchItemList, 10000);
 fetchItemList();
 </script>
 
-
-
-</body></html>
+</body>
+</html>
