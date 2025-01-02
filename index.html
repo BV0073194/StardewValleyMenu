@@ -156,6 +156,34 @@
         });
     });
 </script>
+    
+<script>
+    const categoryFilter = document.getElementById('category-filter');
+    const rarityFilter = document.getElementById('rarity-filter');
+
+    function filterItems() {
+        const selectedCategory = categoryFilter.value;
+        const selectedRarity = rarityFilter.value;
+
+        document.querySelectorAll('.item-card').forEach(card => {
+            const matchesCategory = (selectedCategory === 'all' || card.dataset.category === selectedCategory) && selectedCategory !== 'placeholder';
+            const matchesRarity = (selectedRarity === 'all' || card.dataset.rarity === selectedRarity) && selectedRarity !== 'placeholder';
+
+            // Show only if category and rarity match or "all" is selected
+            if ((matchesCategory && matchesRarity) || (selectedRarity !== 'placeholder' && selectedCategory === 'placeholder')) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    }
+
+    categoryFilter.addEventListener('change', filterItems);
+    rarityFilter.addEventListener('change', filterItems);
+
+    // Initialize filter on page load
+    window.onload = filterItems;
+</script>
 
 </body>
 </html>
