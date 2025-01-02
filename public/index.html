@@ -19,6 +19,7 @@
           <option value="all">All Categories</option>
           <option value="Tool">Tool</option>
           <option value="Item">Item</option>
+          <option value="Decoration">Decoration</option>
           <option value="Misc">Misc</option>
         </select>
         <select id="rarity-filter">
@@ -62,6 +63,7 @@
           itemCard.dataset.id = item.id;
           itemCard.innerHTML = `
             
+								
 								<img src="${item.image}" alt="${item.name}">
 									<p>${item.name}</p>
         `;

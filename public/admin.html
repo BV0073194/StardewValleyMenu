@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
+  <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Panel</title>
@@ -11,127 +11,127 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/mode/htmlmixed/htmlmixed.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/mode/json/json.min.js"></script>
     <style>
-        body {
-            font-family: 'Courier New', Courier, monospace;
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            background-color: #1e1e1e;
-            color: #d4d4d4;
-        }
-        header {
-            background-color: #333333;
-            padding: 10px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-shrink: 0;
-        }
-        select, button {
-            padding: 10px;
-            background-color: #333333;
-            color: #d4d4d4;
-            border: 1px solid #555;
-            border-radius: 5px;
-        }
-        #editor-container {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            height: 80%;
-        }
-        #editor {
-            flex: 1;
-            border: none;
-            outline: none;
-            height: 90%;
-        }
-    </style>
-</head>
-<body>
+      body {
+        font-family: 'Courier New', Courier, monospace;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        background-color: #1e1e1e;
+        color: #d4d4d4;
+      }
 
-<header>
-    <h1>Admin Panel - File Editor</h1>
-    <div>
+      header {
+        background-color: #333333;
+        padding: 10px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-shrink: 0;
+      }
+
+      select,
+      button {
+        padding: 10px;
+        background-color: #333333;
+        color: #d4d4d4;
+        border: 1px solid #555;
+        border-radius: 5px;
+      }
+
+      #editor-container {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        height: 80%;
+      }
+
+      #editor {
+        flex: 1;
+        border: none;
+        outline: none;
+        height: 90%;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Admin Panel - File Editor</h1>
+      <div>
         <label for="file-selector">Select File:</label>
         <select id="file-selector">
-            <option value="index.html">index.html</option>
-            <option value="info.json">info.json</option>
-            <option value="admin.html">admin.html</option>
+          <option value="index.html">index.html</option>
+          <option value="info.json">info.json</option>
+          <option value="admin.html">admin.html</option>
         </select>
         <button onclick="saveFile()">Save</button>
+      </div>
+    </header>
+    <div id="editor-container">
+      <textarea id="editor"></textarea>
     </div>
-</header>
-
-<div id="editor-container">
-    <textarea id="editor"></textarea>
-</div>
-
-<script>
-let files = {};
-let editor = CodeMirror.fromTextArea(document.getElementById('editor'), {
-    lineNumbers: true,
-    mode: 'htmlmixed',
-    theme: 'dracula',
-    tabSize: 4,
-    indentWithTabs: true,
-    autoCloseTags: true,
-    matchBrackets: true
-});
-
-editor.setSize('100%', '90%');
-
-async function fetchFiles() {
-    try {
-        const response = await fetch('/admin/api/files');
-        const data = await response.json();
-        console.log('Full API Response:', data);
-
-        if (data.logs) {
+    <script>
+      let files = {};
+      let editor = CodeMirror.fromTextArea(document.getElementById('editor'), {
+        lineNumbers: true,
+        mode: 'htmlmixed',
+        theme: 'dracula',
+        tabSize: 4,
+        indentWithTabs: true,
+        autoCloseTags: true,
+        matchBrackets: true
+      });
+      editor.setSize('100%', '90%');
+      async function fetchFiles() {
+        try {
+          const response = await fetch('/admin/api/files');
+          const data = await response.json();
+          console.log('Full API Response:', data);
+          if (data.logs) {
             data.logs.forEach(log => console.log(log));
-        }
-
-        files = {
+          }
+          files = {
             'index.html': data.index,
             'info.json': data.info,
             'admin.html': data.admin
-        };
-        loadFile(document.getElementById('file-selector').value);
-    } catch (error) {
-        console.error('Failed to fetch files:', error);
-    }
-}
+          };
+          loadFile(document.getElementById('file-selector').value);
+        } catch (error) {
+          console.error('Failed to fetch files:', error);
+        }
+      }
 
-function loadFile(filename) {
-    const content = files[filename];
-    editor.setValue(content !== undefined ? content : 'File not found');
-    const mode = filename.endsWith('.json') ? 'application/json' : 'htmlmixed';
-    editor.setOption('mode', mode);
-}
-
-async function saveFile() {
-    const filename = document.getElementById('file-selector').value;
-    const content = editor.getValue();
-    try {
-        const response = await fetch('/admin/api/save', {
+      function loadFile(filename) {
+        const content = files[filename];
+        editor.setValue(content !== undefined ? content : 'File not found');
+        const mode = filename.endsWith('.json') ? 'application/json' : 'htmlmixed';
+        editor.setOption('mode', mode);
+      }
+      async function saveFile() {
+        const filename = document.getElementById('file-selector').value;
+        const content = editor.getValue();
+        try {
+          const response = await fetch('/admin/api/save', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ filename, content })
-        });
-        const message = await response.text();
-        alert(message);
-    } catch (error) {
-        console.error('Failed to save file:', error);
-    }
-}
-
-document.getElementById('file-selector').addEventListener('change', (e) => {
-    loadFile(e.target.value);
-});
-
-fetchFiles();
-</script>
-
-</body>
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              filename,
+              content
+            })
+          });
+          const message = await response.text();
+          alert(message);
+        } catch (error) {
+          console.error('Failed to save file:', error);
+        }
+        fetchFiles();
+      }
+      document.getElementById('file-selector').addEventListener('change', (e) => {
+        loadFile(e.target.value);
+      });
+      fetchFiles();
+    </script>
+  </body>
 </html>

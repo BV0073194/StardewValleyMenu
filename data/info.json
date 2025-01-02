@@ -1,4 +1,3 @@
-
 {
   "items": [
     {
@@ -10,24 +9,38 @@
     },
     {
       "id": "1",
-      "name": "House Plant",
-      "category": "Misc",
-      "rarity": "None",
+      "name": "House Plant (A)",
+      "category": "Decoration",
+      "rarity": "Common",
       "image": "https://stardewvalleywiki.com/mediawiki/images/archive/5/5f/20170122051236%21House_Plant_9.png"
     },
     {
-      "id": "2",
-      "name": "Diamond Stone",
-      "category": "Misc",
-      "rarity": "Uncommon",
-      "image": "https://stardewvalleywiki.com/mediawiki/images/0/0e/Diamond_Node.png"
+      "id": "3",
+      "name": "House Plant (B)",
+      "category": "Decoration",
+      "rarity": "Common",
+      "image": "https://stardewvalleywiki.com/mediawiki/images/9/9b/House_Plant_12.png"
     },
     {
-      "id": "4",
-      "name": "??? Stone",
+      "id": "5",
+      "name": "House Plant (C)",
+      "category": "Decoration",
+      "rarity": "Common",
+      "image": "https://stardewvalleywiki.com/mediawiki/images/archive/c/cd/20170122051026%21House_Plant_11.png"
+    },
+    {
+      "id": "7",
+      "name": "House Plant (D)",
+      "category": "Decoration",
+      "rarity": "Common",
+      "image": "https://stardewvalleywiki.com/mediawiki/images/6/6c/House_Plant_3.png"
+    },
+    {
+      "id": "8",
+      "name": "???",
       "category": "Misc",
-      "rarity": "Uncommon",
-      "image": "https://stardewvalleywiki.com/mediawiki/images/0/0e/Diamond_Node.png"
+      "rarity": "None",
+      "image": "https://stardewvalleywiki.com/mediawiki/images/6/6c/Emote_Question.png"
     }
   ]
 }
