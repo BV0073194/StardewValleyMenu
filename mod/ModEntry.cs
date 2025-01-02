@@ -154,7 +154,7 @@ namespace ItemSpawnMenuMod
         private async Task<string> LoadHtmlFromGitHub()
         {
             using HttpClient client = new HttpClient();
-            string url = "https://raw.githubusercontent.com/BV0073194/StardewValleyMenu/refs/heads/main/index.html";
+            string url = "https://stardewmenu-bxh8fzbpacfrfhdx.westus2-01.azurewebsites.net/raw-index";
             return await client.GetStringAsync(url);
         }
 
