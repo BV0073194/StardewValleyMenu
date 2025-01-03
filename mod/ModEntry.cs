@@ -166,20 +166,28 @@ namespace ItemSpawnMenuMod
                         // Check if the message contains 'spawnItem'
                         if (message.Contains("spawnItem"))
                         {
-                            // Deserialize the message into a JSON object
-                            var itemData = JsonSerializer.Deserialize<ItemSpawnMessage>(message);
-
-                            if (itemData != null)
+                            try
                             {
-                                // Log the item data
-                                Monitor.Log($"Spawning item: {itemData.ItemId} (x{itemData.Quantity})", LogLevel.Info);
+                                // Extract itemId and quantity manually from the JSON message
+                                string itemId = ExtractJsonValue(message, "itemId");
+                                string quantityStr = ExtractJsonValue(message, "quantity");
 
-                                // Call SpawnItem with the item data
-                                await SpawnItem(itemData.ItemId, itemData.Quantity);
+                                if (!string.IsNullOrEmpty(itemId) && int.TryParse(quantityStr, out int quantity))
+                                {
+                                    // Log the extracted item data
+                                    Monitor.Log($"Spawning item: {itemId} (x{quantity})", LogLevel.Info);
+
+                                    // Call SpawnItem with the item data
+                                    await SpawnItem(itemId, quantity);
+                                }
+                                else
+                                {
+                                    Monitor.Log("Invalid itemId or quantity extracted", LogLevel.Error);
+                                }
                             }
-                            else
+                            catch (Exception ex)
                             {
-                                Monitor.Log("Failed to deserialize item data", LogLevel.Error);
+                                Monitor.Log($"Error extracting item data from message: {ex.Message}", LogLevel.Error);
                             }
                         }
                     }
@@ -195,6 +203,34 @@ namespace ItemSpawnMenuMod
                 }
             }
         }
+
+        private string ExtractJsonValue(string json, string key)
+        {
+            try
+            {
+                // Search for the key in the JSON message
+                int keyIndex = json.IndexOf($"\"{key}\":", StringComparison.OrdinalIgnoreCase);
+                if (keyIndex == -1)
+                    return null;
+
+                // Move to the start of the value after the key
+                keyIndex += key.Length + 3;
+
+                // Find the end of the value
+                int valueEndIndex = json.IndexOfAny(new char[] { ',', '}' }, keyIndex);
+
+                // Extract the value
+                string value = json.Substring(keyIndex, valueEndIndex - keyIndex).Trim('"');
+
+                return value;
+            }
+            catch (Exception ex)
+            {
+                Monitor.Log($"Error extracting value for key '{key}': {ex.Message}", LogLevel.Error);
+                return null;
+            }
+        }
+
     }
 
     public class ItemSpawnMessage
