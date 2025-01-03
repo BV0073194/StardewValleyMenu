@@ -9,8 +9,9 @@ using System.Threading.Tasks;
 using System.Net.WebSockets;
 using System.Threading;
 using System.Diagnostics;
+using StardewValley.Tools;
 
-namespace ItemSpawnMenuMod
+namespace BMenu
 {
     public class ModEntry : Mod
     {
@@ -109,23 +110,70 @@ namespace ItemSpawnMenuMod
                 UseShellExecute = true
             });
         }
+        private Item SpawnItemByQualifiedId(string qualifiedItemId)
+        {
+            // Use the ItemRegistry to get item metadata
+            var itemMetadata = ItemRegistry.GetMetadata(qualifiedItemId);
+            if (itemMetadata == null)
+            {
+                Monitor.Log($"Item with QualifiedItemId '{qualifiedItemId}' not found.", LogLevel.Error);
+                return null;
+            }
+
+            // Create an instance of the item
+            return itemMetadata.CreateItem();
+        }
 
         public async Task SpawnItem(string itemId, int quantity = 1)
         {
             Monitor.Log($"Attempting to spawn item: {itemId} (x{quantity})", LogLevel.Info);
 
-            // Validate itemId and map to in-game ID if necessary
-            if (string.IsNullOrEmpty(itemId))
+            // Validate itemId and quantity
+            if (string.IsNullOrEmpty(itemId) || quantity <= 0)
             {
-                Monitor.Log("Invalid item ID", LogLevel.Warn);
+                Monitor.Log("Invalid item ID or quantity", LogLevel.Warn);
                 return;
             }
 
-            // Assuming the mapping function and item spawning works
-            var item = new StardewValley.Object(itemId, quantity); // Replace with actual item ID logic
-            Game1.player.addItemToInventory(item);
+            // Spawn the base item
+            Item spawnedItem = SpawnItemByQualifiedId(itemId);
 
-            Monitor.Log($"Successfully spawned item: {itemId} (x{quantity})", LogLevel.Info);
+            if (spawnedItem != null)
+            {
+                // Check if the item is stackable
+                if (spawnedItem is StardewValley.Object obj && obj.maximumStackSize() > 1)
+                {
+                    // Set the stack size to the requested quantity
+                    obj.Stack = Math.Min(quantity, obj.maximumStackSize());
+
+                    // Add the item to the player's inventory
+                    Game1.player.addItemToInventory(obj);
+
+                    // If more items are needed, spawn additional stacks
+                    quantity -= obj.Stack;
+                    while (quantity > 0)
+                    {
+                        StardewValley.Object additionalStack = (StardewValley.Object)obj.getOne();
+                        additionalStack.Stack = Math.Min(quantity, obj.maximumStackSize());
+                        Game1.player.addItemToInventory(additionalStack);
+                        quantity -= additionalStack.Stack;
+                    }
+                }
+                else
+                {
+                    // Non-stackable items: add multiple copies
+                    for (int i = 0; i < quantity; i++)
+                    {
+                        Game1.player.addItemToInventory(spawnedItem.getOne());
+                    }
+                }
+
+                Monitor.Log($"Successfully spawned item: {itemId} (x{quantity})", LogLevel.Info);
+            }
+            else
+            {
+                Monitor.Log($"Failed to spawn item: {itemId}", LogLevel.Error);
+            }
         }
 
         private async void InitializeWebSocket()
