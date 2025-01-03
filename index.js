@@ -4,6 +4,7 @@ const http = require('http');
 const WebSocket = require('ws');
 const path = require('path');
 const basicAuth = require('express-basic-auth');
+const { v4: uuidv4 } = require('uuid');
 
 const app = express();
 const server = http.createServer(app);
@@ -16,6 +17,14 @@ const ROOT_PATH = path.join(__dirname, '..', 'wwwroot');
 const INFO_PATH = path.join(ROOT_PATH, 'data', 'info.json');
 const HTML_PATH = path.join(ROOT_PATH, 'public', 'index.html');
 const ADMIN_PATH = path.join(ROOT_PATH, 'public', 'admin.html');
+
+const wsConnections = [];
+
+// Session management
+const sessions = {};
+
+// Middleware for JSON parsing
+app.use(express.json());
 
 // Serve static files
 app.use(express.static(path.join(ROOT_PATH, 'public')));
@@ -54,30 +63,16 @@ app.post('/admin/api/save', express.json(), (req, res) => {
     }
 });
 
-
 app.get('/admin/api/files', (req, res) => {
     try {
-        // Force open the files
-        const indexFd = fs.openSync(HTML_PATH, 'r');
-        const infoFd = fs.openSync(INFO_PATH, 'r');
-	const adminFd = fs.openSync(ADMIN_PATH, 'r');
-
-        const indexContent = fs.readFileSync(indexFd, 'utf8') || 'index.html not found';
-        const infoContent = fs.readFileSync(infoFd, 'utf8') || 'info.json not found';
-	const adminContent = fs.readFileSync(adminFd, 'utf8') || 'admin.html not found';
-
-        fs.closeSync(indexFd);
-        fs.closeSync(infoFd);
-	fs.closeSync(adminFd);
-
-        console.log('HTML Path:', HTML_PATH);
-        console.log('JSON Path:', INFO_PATH);
-        console.log('ADMIN Path:', ADMIN_PATH);
+        const indexContent = fs.readFileSync(HTML_PATH, 'utf8') || 'index.html not found';
+        const infoContent = fs.readFileSync(INFO_PATH, 'utf8') || 'info.json not found';
+        const adminContent = fs.readFileSync(ADMIN_PATH, 'utf8') || 'admin.html not found';
 
         const files = {
             index: indexContent,
             info: infoContent,
-	    admin: adminContent,
+            admin: adminContent,
             logs: [
                 `index.html content: ${indexContent.substring(0, 200)}...`,
                 `info.json content: ${infoContent.substring(0, 200)}...`,
@@ -110,13 +105,66 @@ app.get('/raw-index', (req, res) => {
     });
 });
 
-// WebSocket broadcast for live updates
-wss.on('connection', (ws) => {
-    fs.readFile(INFO_PATH, 'utf8', (err, data) => {
-        if (!err) {
-            ws.send(JSON.stringify({ type: 'update', items: JSON.parse(data) }));
-        }
-    });
+// Start a new session
+app.post('/session/start', (req, res) => {
+    const uuid = uuidv4();
+    sessions[uuid] = { createdAt: Date.now() };
+    res.json({ UUID: uuid });
+});
+
+// End an existing session
+app.post('/session/end', (req, res) => {
+    const { UUID } = req.body;
+    if (sessions[UUID]) {
+        delete sessions[UUID];
+        res.json({ success: true });
+    } else {
+        res.status(404).json({ success: false, message: 'Session not found' });
+    }
+});
+
+// Handle item spawning requests
+app.get('/:UUID/spawn', (req, res) => {
+    const { UUID } = req.params;
+    if (!sessions[UUID]) {
+        return res.status(403).json({ success: false, message: 'Invalid or expired session' });
+    }
+
+    const { item, quantity } = req.query;
+    const qty = parseInt(quantity, 10) || 1;
+
+    // Forward the item spawn request to the WebSocket client (mod) associated with this UUID
+    const ws = wsConnections[UUID];
+    if (ws) {
+        const message = JSON.stringify({
+            action: 'spawnItem',
+            itemId: item,
+            quantity: qty
+        });
+
+        ws.send(message); // Send the message to the mod WebSocket
+        res.json({ success: true, message: `Item ${item} (x${qty}) spawned.` });
+    } else {
+        res.status(404).json({ success: false, message: 'No active WebSocket connection for this session.' });
+    }
+});
+
+// WebSocket connection handler
+wss.on('connection', (ws, req) => {
+    const uuid = req.url.split('?UUID=')[1];
+    if (uuid) {
+        wsConnections[uuid] = ws; // Map the UUID to the WebSocket connection
+
+        ws.on('message', (message) => {
+            console.log(`Received message from ${uuid}: ${message}`);
+        });
+
+        ws.on('close', () => {
+            delete wsConnections[uuid]; // Cleanup on disconnect
+        });
+
+        console.log(`WebSocket connected for session ${uuid}`);
+    }
 });
 
 server.listen(PORT, () => {
