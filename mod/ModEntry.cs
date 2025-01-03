@@ -1,170 +1,205 @@
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
-using System.Net;
+using System;
+using System.Net.Http;
 using System.Text;
+using System.Text.Json;
+using System.Threading.Tasks;
+using System.Net.WebSockets;
 using System.Threading;
 using System.Diagnostics;
-using System.Net.Http;
-using System.Threading.Tasks;
-using System.IO;
 
 namespace ItemSpawnMenuMod
 {
     public class ModEntry : Mod
     {
-        private string playerName = "";
-        private HttpListener listener;
-        private Thread serverThread;
-        private string localPath = "Mods/BV0073194/StardewValleyMenu/";
+        private string sessionId;
+        private readonly string serverUrl = "https://stardewmenu-bxh8fzbpacfrfhdx.westus2-01.azurewebsites.net";
+        private string UUID_CLIENT;
+        private ClientWebSocket wsClient;
 
         public override void Entry(IModHelper helper)
         {
             helper.Events.GameLoop.SaveLoaded += OnSaveLoaded;
             helper.Events.GameLoop.ReturnedToTitle += OnGameEnd;
-            StartWebServer();
         }
 
-        private void OnSaveLoaded(object sender, SaveLoadedEventArgs e)
+        private async void OnSaveLoaded(object sender, SaveLoadedEventArgs e)
         {
-            playerName = Game1.player.Name;
-            OpenWebPage();
+            await StartSession();
         }
 
-        private void OnGameEnd(object sender, ReturnedToTitleEventArgs e)
+        private async void OnGameEnd(object sender, ReturnedToTitleEventArgs e)
         {
+            await EndSession();
+            await wsClient.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closing", CancellationToken.None);
         }
 
-        private void StartWebServer()
+        private async Task StartSession()
         {
-            serverThread = new Thread(async () =>
+            using HttpClient client = new HttpClient();
+            var response = await client.PostAsync($"{serverUrl}/session/start", null);
+
+            if (response.IsSuccessStatusCode)
             {
-                try
+                var responseContent = await response.Content.ReadAsStringAsync();
+                UUID_CLIENT = ExtractUUID(responseContent);
+                if (UUID_CLIENT != null)
                 {
-                    listener = new HttpListener();
-                    listener.Prefixes.Add("http://*:8080/");
-                    listener.Start();
+                    sessionId = UUID_CLIENT;
+                    OpenWebPage();
+                    InitializeWebSocket();
                 }
-                catch (Exception ex)
+                else
                 {
-                    listener = new HttpListener();
-                    listener.Prefixes.Add("http://localhost:8080/");
-                    listener.Start();
+                    Monitor.Log("Invalid session response: UUID is missing", LogLevel.Error);
                 }
-
-                while (listener.IsListening)
-                {
-                    try
-                    {
-                        HttpListenerContext context = await listener.GetContextAsync();
-                        _ = Task.Run(async () =>
-                        {
-                            HttpListenerRequest request = context.Request;
-                            HttpListenerResponse response = context.Response;
-
-                            string urlPath = request.Url.AbsolutePath.TrimStart('/');
-
-                            // Check if the request is for a static file
-                            if (urlPath.EndsWith(".css") || urlPath.EndsWith(".js") || urlPath.EndsWith(".png") || urlPath.EndsWith(".jpg"))
-                            {
-                                await ServeStaticFile(urlPath, response);
-                            }
-                            else
-                            {
-                                // Handle item spawning from query parameters
-                                if (request.QueryString.HasKeys())
-                                {
-                                    string itemId = request.QueryString["item"];
-                                    int quantity = int.TryParse(request.QueryString["quantity"], out int qty) ? qty : 1;
-
-                                    for (int i = 0; i < quantity; i++)
-                                    {
-                                        Item item = ItemRegistry.Create(itemId);
-                                        if (item != null)
-                                        {
-                                            Game1.player.addItemToInventory(item);
-                                        }
-                                    }
-                                }
-
-                                string responseString = await LoadHtmlFromGitHub();
-                                byte[] buffer = Encoding.UTF8.GetBytes(responseString);
-                                response.ContentLength64 = buffer.Length;
-                                response.AddHeader("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
-                                response.AddHeader("Pragma", "no-cache");
-                                response.AddHeader("Expires", "0");
-                                response.AddHeader("Access-Control-Allow-Origin", "*");
-                                using var output = response.OutputStream;
-                                output.Write(buffer, 0, buffer.Length);
-                            }
-                        });
-                    }
-                    catch (Exception ex)
-                    {
-                        Monitor.Log($"Error handling request: {ex.Message}", LogLevel.Warn);
-                    }
-                }
-            });
-            serverThread.IsBackground = true;
-            serverThread.Start();
-        }
-
-        private async Task ServeStaticFile(string urlPath, HttpListenerResponse response)
-        {
-            string filePath = Path.Combine(localPath, urlPath);
-
-            if (File.Exists(filePath))
-            {
-                byte[] buffer = await File.ReadAllBytesAsync(filePath);
-                response.ContentLength64 = buffer.Length;
-
-                if (urlPath.EndsWith(".css"))
-                {
-                    response.ContentType = "text/css";
-                }
-                else if (urlPath.EndsWith(".js"))
-                {
-                    response.ContentType = "application/javascript";
-                }
-                else if (urlPath.EndsWith(".png") || urlPath.EndsWith(".jpg"))
-                {
-                    response.ContentType = "image/png";
-                }
-
-                using var output = response.OutputStream;
-                output.Write(buffer, 0, buffer.Length);
             }
             else
             {
-                response.StatusCode = 404;
-                using var output = response.OutputStream;
-                byte[] buffer = Encoding.UTF8.GetBytes("File not found.");
-                output.Write(buffer, 0, buffer.Length);
+                Monitor.Log($"Failed to start session: {response.StatusCode} {response.ReasonPhrase}", LogLevel.Error);
             }
         }
 
-        private void StopWebServer()
+        private string ExtractUUID(string responseContent)
         {
-            listener?.Stop();
-            listener?.Close();
-            serverThread?.Interrupt();
-            serverThread = null;
+            try
+            {
+                using (JsonDocument doc = JsonDocument.Parse(responseContent))
+                {
+                    if (doc.RootElement.TryGetProperty("UUID", out JsonElement uuidElement))
+                    {
+                        return uuidElement.GetString();
+                    }
+                    else
+                    {
+                        Monitor.Log("UUID key not found in the response.", LogLevel.Error);
+                        return null;
+                    }
+                }
+            }
+            catch (JsonException ex)
+            {
+                Monitor.Log($"Error parsing JSON: {ex.Message}", LogLevel.Error);
+                return null;
+            }
         }
 
-        private async Task<string> LoadHtmlFromGitHub()
+        private async Task EndSession()
         {
             using HttpClient client = new HttpClient();
-            string url = "https://stardewmenu-bxh8fzbpacfrfhdx.westus2-01.azurewebsites.net/raw-index";
-            return await client.GetStringAsync(url);
+            var content = new StringContent(JsonSerializer.Serialize(new { UUID = sessionId }), Encoding.UTF8, "application/json");
+            var response = await client.PostAsync($"{serverUrl}/session/end", content);
+            if (response.IsSuccessStatusCode)
+            {
+                Monitor.Log("Session ended successfully", LogLevel.Info);
+            }
+            else
+            {
+                Monitor.Log("Failed to end session", LogLevel.Error);
+            }
         }
 
         private void OpenWebPage()
         {
             Process.Start(new ProcessStartInfo
             {
-                FileName = "http://localhost:8080/",
+                FileName = $"{serverUrl}/?UUID={UUID_CLIENT}",
                 UseShellExecute = true
             });
         }
+
+        public async Task SpawnItem(string itemId, int quantity = 1)
+        {
+            Monitor.Log($"Attempting to spawn item: {itemId} (x{quantity})", LogLevel.Info);
+
+            // Validate itemId and map to in-game ID if necessary
+            if (string.IsNullOrEmpty(itemId))
+            {
+                Monitor.Log("Invalid item ID", LogLevel.Warn);
+                return;
+            }
+
+            // Assuming the mapping function and item spawning works
+            var item = new StardewValley.Object(itemId, quantity); // Replace with actual item ID logic
+            Game1.player.addItemToInventory(item);
+
+            Monitor.Log($"Successfully spawned item: {itemId} (x{quantity})", LogLevel.Info);
+        }
+
+        private async void InitializeWebSocket()
+        {
+            wsClient = new ClientWebSocket();
+
+            try
+            {
+                Uri wsUri = new Uri($"wss://stardewmenu-bxh8fzbpacfrfhdx.westus2-01.azurewebsites.net/?UUID={UUID_CLIENT}");
+                await wsClient.ConnectAsync(wsUri, CancellationToken.None);
+                Monitor.Log("Connected to WebSocket server", LogLevel.Info);
+
+                // Start receiving messages
+                ReceiveMessages();
+            }
+            catch (Exception ex)
+            {
+                Monitor.Log($"Error connecting to WebSocket: {ex.Message}", LogLevel.Error);
+            }
+        }
+
+        private async void ReceiveMessages()
+        {
+            var buffer = new byte[1024];
+
+            while (wsClient.State == WebSocketState.Open)
+            {
+                try
+                {
+                    var result = await wsClient.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+
+                    if (result.MessageType == WebSocketMessageType.Text)
+                    {
+                        string message = Encoding.UTF8.GetString(buffer, 0, result.Count);
+                        // Log the raw incoming WebSocket message
+                        Monitor.Log($"Received WebSocket message: {message}", LogLevel.Info);
+
+                        // Check if the message contains 'spawnItem'
+                        if (message.Contains("spawnItem"))
+                        {
+                            // Deserialize the message into a JSON object
+                            var itemData = JsonSerializer.Deserialize<ItemSpawnMessage>(message);
+
+                            if (itemData != null)
+                            {
+                                // Log the item data
+                                Monitor.Log($"Spawning item: {itemData.ItemId} (x{itemData.Quantity})", LogLevel.Info);
+
+                                // Call SpawnItem with the item data
+                                await SpawnItem(itemData.ItemId, itemData.Quantity);
+                            }
+                            else
+                            {
+                                Monitor.Log("Failed to deserialize item data", LogLevel.Error);
+                            }
+                        }
+                    }
+                    else if (result.MessageType == WebSocketMessageType.Close)
+                    {
+                        await wsClient.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closing", CancellationToken.None);
+                        Monitor.Log("WebSocket closed", LogLevel.Info);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Monitor.Log($"Error while receiving WebSocket message: {ex.Message}", LogLevel.Error);
+                }
+            }
+        }
+    }
+
+    public class ItemSpawnMessage
+    {
+        public string ItemId { get; set; }
+        public int Quantity { get; set; }
     }
 }
